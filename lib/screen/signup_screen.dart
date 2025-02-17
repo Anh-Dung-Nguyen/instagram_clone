@@ -1,5 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:instagram/data/firebase_service/firebase_auth.dart';
+import 'package:instagram/util/dialog.dart';
+import 'package:instagram/util/exception.dart';
+import 'package:instagram/util/imagepicker.dart';
 
 class SignupScreen extends StatefulWidget{
   final VoidCallback show;
@@ -28,6 +34,18 @@ class _SignupScreenState extends State<SignupScreen>{
   final passwordConfirmation = TextEditingController();
   FocusNode passwordConfirmation_F = FocusNode(); 
 
+  File? _imageFile;
+
+  @override
+  void dispose() {
+    super.dispose();
+    email.dispose();
+    password.dispose();
+    bio.dispose();
+    username.dispose();
+    passwordConfirmation.dispose();
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -42,11 +60,27 @@ class _SignupScreenState extends State<SignupScreen>{
             ),
             SizedBox(height: 60.h),
             Center(
-              child: CircleAvatar(
-                radius: 34.r, 
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: AssetImage('images/person.png'),
-              )
+              child: InkWell(
+                onTap: () async {
+                  File _imagefilee = await ImagePickerr().uploadImage('gallery');
+                  setState(() {
+                    _imageFile = _imagefilee;
+                  });
+                },
+                child: CircleAvatar(
+                  radius: 36.r,
+                  backgroundColor: Colors.grey,
+                  child: _imageFile == null ? CircleAvatar(
+                      radius: 34.r, 
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: AssetImage('images/person.png'),
+                  ) : CircleAvatar(
+                      radius: 34.r, 
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: Image.file(_imageFile!, fit: BoxFit.cover,).image,
+                  )
+                ),
+              ),
             ),
             SizedBox(height: 50.h),
             Textfield(email, Icons.email, 'Email', email_F),
@@ -59,7 +93,7 @@ class _SignupScreenState extends State<SignupScreen>{
             SizedBox(height: 15.h),
             Textfield(passwordConfirmation, Icons.lock, 'Password Confirmation', passwordConfirmation_F),
             SizedBox(height: 20.h),
-            Login(),
+            Signup(),
             SizedBox(height: 10.h),
             Have(),
           ],
@@ -97,23 +131,32 @@ class _SignupScreenState extends State<SignupScreen>{
     );
   }
 
-  Widget Login(){
+  Widget Signup(){
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: Container(
-        alignment: Alignment.center,
-        width: double.infinity, 
-        height: 44.h,
-        decoration: BoxDecoration(
-          color: Colors.black, 
-          borderRadius: BorderRadius.circular(10.r),
-        ),
-        child: Text(
-          'Sign up', 
-          style: TextStyle(
-            fontSize: 23.sp, 
-            color: Colors.white, 
-            fontWeight: FontWeight.bold,
+      child: InkWell(
+        onTap: () async {
+          try {
+            await Authentication().Signup(email: email.text, password: password.text, passwordConfirmation: passwordConfirmation.text, username: username.text, bio: bio.text, profile: File(''),);
+          } on exceptions catch(e) {
+            dialogBuilder(context, e.message);
+          }
+        },
+        child: Container(
+          alignment: Alignment.center,
+          width: double.infinity, 
+          height: 44.h,
+          decoration: BoxDecoration(
+            color: Colors.black, 
+            borderRadius: BorderRadius.circular(10.r),
+          ),
+          child: Text(
+            'Sign up', 
+            style: TextStyle(
+              fontSize: 23.sp, 
+              color: Colors.white, 
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
@@ -149,7 +192,7 @@ class _SignupScreenState extends State<SignupScreen>{
           controller: controller,
           focusNode: focusNode,
           decoration: InputDecoration(
-            hintText: type,
+            hintText: type ?? '',
             prefixIcon: Icon(
               icon, 
               color: focusNode.hasFocus? Colors.black: Colors.grey
