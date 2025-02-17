@@ -46,3 +46,6 @@ app.*.map.json
 
 contratkey
 contratkey.pub
+
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
