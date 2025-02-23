@@ -23,7 +23,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
     lastPage = currentPage;
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
     if (ps.isAuth) {
-      List<AssetPathEntity> album = await PhotoManager.getAssetPathList(onlyAll: true);
+      List<AssetPathEntity> album = await PhotoManager.getAssetPathList(type: RequestType.image);
       List<AssetEntity> media = await album[0].getAssetListPaged(page: currentPage, size: 60);
 
       for (var asset in media) {
