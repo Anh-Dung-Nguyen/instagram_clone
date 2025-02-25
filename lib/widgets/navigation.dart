@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:instagram/screen/explore.dart';
 import 'package:instagram/screen/explore_screen.dart';
 import 'package:instagram/screen/home.dart';
 import 'package:instagram/screen/profile_screen.dart';
@@ -71,7 +72,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       body: PageView(
         controller: pageController,
         onPageChanged: onPageChanged,
-        children: const [HomeScreen(), ExploreScreen(), ReelsScreen(), ProfileScreen(),],
+        children: const [HomeScreen(), Explorescreen(), ReelsScreen(), ProfileScreen(),],
       ),
     );
   }
