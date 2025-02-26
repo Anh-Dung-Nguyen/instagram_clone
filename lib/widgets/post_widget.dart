@@ -2,6 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instagram/util/image_cached.dart';
+import 'package:instagram/widgets/comment.dart';
 
 class PostWidget extends StatelessWidget {
   final snapshot;
@@ -56,9 +57,32 @@ class PostWidget extends StatelessWidget {
                     size: 25.w,
                   ),
                   SizedBox(width: 17.w),
-                  Image.asset(
-                    'images/comment.webp',
-                    height: 28.h,
+                  GestureDetector(
+                    onTap: () {
+                      showBottomSheet(
+                        backgroundColor: Colors.transparent,
+                        context: context, 
+                        builder: (context) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                            ),
+                            child: DraggableScrollableSheet(
+                              maxChildSize: 0.6,
+                              initialChildSize: 0.6,
+                              minChildSize: 0.2,
+                              builder: (context, scrollController) {
+                                return Comment(snapshot['postId'], 'reels');
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Image.asset(
+                      'images/comment.webp',
+                      height: 28.h,
+                    ),
                   ),
                   SizedBox(width: 17.w),
                   Image.asset(
