@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:instagram/util/image_cached.dart';
+import 'package:instagram/widgets/comment.dart';
 import 'package:video_player/video_player.dart';
 
 class ReelsItem extends StatefulWidget {
@@ -80,10 +81,33 @@ class _ReelsItemState extends State<ReelsItem> {
                   ),
                 ),
                 SizedBox(height: 15.h),
-                Icon(
-                  Icons.comment,
-                  color: Colors.white,
-                  size: 28.w,
+                GestureDetector(
+                  onTap: () {
+                    showBottomSheet(
+                      backgroundColor: Colors.transparent,
+                      context: context, 
+                      builder: (context) {
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
+                          child: DraggableScrollableSheet(
+                            maxChildSize: 0.6,
+                            initialChildSize: 0.6,
+                            minChildSize: 0.2,
+                            builder: (context, scrollController) {
+                              return Comment(widget.snapshot['postId'], 'posts');
+                            },
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  child: Icon(
+                    Icons.comment,
+                    color: Colors.white,
+                    size: 28.w,
+                  ),
                 ),
                 SizedBox(height: 3.h),
                 Text(
