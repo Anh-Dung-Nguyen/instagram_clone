@@ -127,5 +127,5 @@ class _CommentState extends State<Comment> {
         ),
       ),
     );
-  };
+  }
 }
