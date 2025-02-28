@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:instagram/screen/post_screen.dart';
+import 'package:instagram/screen/profile_screen.dart';
 import 'package:instagram/util/image_cached.dart';
 
 class Explorescreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class Explorescreen extends StatefulWidget {
 class _ExplorescreenState extends State<Explorescreen> {
   final search = TextEditingController();
   final FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
+  bool show = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,51 +26,99 @@ class _ExplorescreenState extends State<Explorescreen> {
         child: CustomScrollView(
           slivers: [
             SearchBox(),
-            StreamBuilder(
-              stream: _firebaseFirestore.collection('posts').snapshots(), 
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const SliverToBoxAdapter(
-                    child: Center(
-                      child: CircularProgressIndicator(),
+            if (!show)
+              StreamBuilder(
+                stream: _firebaseFirestore.collection('posts').snapshots(), 
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SliverToBoxAdapter(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return SliverGrid(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final snap = snapshot.data!.docs[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => PostScreen(
+                                snap.data()),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(color: Colors.grey),
+                            child: CachedImage(snap['postImage']),
+                          ),
+                        );
+                      },
+                      childCount: snapshot.data!.docs.length,
+                    ), 
+                    gridDelegate: SliverQuiltedGridDelegate(
+                      crossAxisCount: 3,
+                      mainAxisSpacing: 3,
+                      crossAxisSpacing: 3,
+                      pattern: const [
+                        QuiltedGridTile(2, 1),
+                        QuiltedGridTile(2, 2),
+                        QuiltedGridTile(1, 1),
+                        QuiltedGridTile(1, 1),
+                        QuiltedGridTile(1, 1),
+                      ]
                     ),
                   );
                 }
-                return SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final snap = snapshot.data!.docs[index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => PostScreen(
-                              snap.data()),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(color: Colors.grey),
-                          child: CachedImage(snap['postImage']),
-                        ),
-                      );
-                    },
-                    childCount: snapshot.data!.docs.length,
-                  ), 
-                  gridDelegate: SliverQuiltedGridDelegate(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 3,
-                    crossAxisSpacing: 3,
-                    pattern: const [
-                      QuiltedGridTile(2, 1),
-                      QuiltedGridTile(2, 2),
-                      QuiltedGridTile(1, 1),
-                      QuiltedGridTile(1, 1),
-                      QuiltedGridTile(1, 1),
-                    ]
-                  ),
-                );
-              }
-            ),
+              ),
+              if (show)
+                StreamBuilder(
+                stream: _firebaseFirestore
+                  .collection('users')
+                  .where('username', isGreaterThanOrEqualTo: search.text)
+                  .snapshots(), 
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SliverToBoxAdapter(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
+                  return SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final snap = snapshot.data!.docs[index];
+                        return Column(
+                          children: [
+                            SizedBox(height: 10.h),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(MaterialPageRoute(
+                                  builder: (context) => 
+                                    ProfileScreen(Uid: snap.id)),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 23.r,
+                                    backgroundImage: NetworkImage(snap['profile']),
+                                  ),
+                                  SizedBox(width: 15.w),
+                                  Text(snap['username'])
+                                ],
+                              ),
+                            )
+                          ],
+                        );
+                      },
+                      childCount: snapshot.data!.docs.length,
+                    ),
+                  );
+                },
+              ),
           ],
         )
       ),
@@ -102,6 +152,15 @@ class _ExplorescreenState extends State<Explorescreen> {
                 SizedBox(width: 10.w),
                 Expanded(
                   child: TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        if (value.length > 0) {
+                          show = true;
+                        } else {
+                          show = false;
+                        }
+                      });
+                    },
                     controller: search,
                     decoration: const InputDecoration(
                       hintText: 'Search User',
