@@ -25,9 +25,9 @@ class Firebase_Firestorage {
     return true;
   }
 
-  Future<Usermodel> getUser() async {
+  Future<Usermodel> getUser({String ? uidd}) async {
     try {
-      final user = await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).get();
+      final user = await _firebaseFirestore.collection('users').doc(uidd ?? _auth.currentUser!.uid).get();
       final snapuser = user.data()!;
       return Usermodel(snapuser['bio'], snapuser['email'], snapuser['followers'], snapuser['following'], snapuser['profile'], snapuser['username']);
     } on FirebaseException catch (e) {
@@ -108,6 +108,36 @@ class Firebase_Firestorage {
       } else {
         _firebaseFirestore.collection(type).doc(postId).update({
           'like': FieldValue.arrayUnion([uid])
+        });
+      }
+      res = 'Success';
+    } on Exception catch (e) {
+      // TODO
+      res = e.toString();
+    }
+    return res;
+  }
+
+  Future<String> follow ({
+    required String uid,
+  }) async {
+    String res = 'Some error';
+    DocumentSnapshot snap = await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).get();
+    List follow = (snap.data()! as dynamic)['following'];
+    try {
+      if (follow.contains(uid)) {
+        await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).update({
+          'following': FieldValue.arrayRemove([uid])
+        });
+        await _firebaseFirestore.collection('users').doc(uid).update({
+          'followers': FieldValue.arrayRemove([_auth.currentUser!.uid])
+        });
+      } else {
+        await _firebaseFirestore.collection('users').doc(_auth.currentUser!.uid).update({
+          'following': FieldValue.arrayUnion([uid])
+        });
+        await _firebaseFirestore.collection('users').doc(uid).update({
+          'followers': FieldValue.arrayUnion([_auth.currentUser!.uid])
         });
       }
       res = 'Success';
